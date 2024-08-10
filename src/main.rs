@@ -1,7 +1,33 @@
-use std::{fs::{self, File}, io::Write, path::Path};
+use std::{fs::{self, File}, io::Write, path::Path, vec};
+use rand::Rng;
+
+fn pseudo_random_generator(length: usize) -> Vec<usize> {
+    println!("in pseduo random");
+    let mut rng = rand::thread_rng();
+    let mut vector_random : Vec<usize> = vec![];
+    let mut i = 0;
+    while length > i {
+        // println!("in side while loop");
+        let random_bit = rng.gen_range(0..2);
+        // println!("random bits: {}", random_bit);
+        vector_random.push(random_bit);
+        i = i + 1;
+    }
+    // println!("{:?}", vector_random);
+    return vector_random;
+}
 
 fn stream_cipher(file_content: String) -> String {
-    return file_content.to_string()
+    println!("in stream cipher");
+    let mut file_content_bits: Vec<usize> = vec![];
+    let random_bits = pseudo_random_generator(file_content.len());
+    for (_int, char) in file_content.chars().enumerate() {
+        let int_bits = char.to_string().parse::<usize>().unwrap();
+        file_content_bits.push(int_bits)
+    }
+    println!("{:?}", file_content_bits);
+    println!("length: {}, random bits length: {}", file_content.len(), random_bits.len());
+    return file_content.to_string();
 }
 
 fn main() {
@@ -14,9 +40,17 @@ fn main() {
     path = path.trim().to_string();
 
     let file_contents = fs::read_to_string(&mut path).expect("couldnot read from file");
-    println!("info.txt content: \n{file_contents}");
+    // println!("info.txt content: \n{file_contents}");
 
-    let encrypted_text: String = stream_cipher(file_contents);
+    let file_contents_ascii = file_contents.as_bytes();
+    let mut file_content_binary = String::default();
+    for bytes in file_contents_ascii.iter() {
+        file_content_binary += &format!("{:b},", bytes);
+    }
+    // println!("{:?}", file_content_binary);
+    // println!("{:?}", file_content_binary.as_bytes());
+
+    let encrypted_text: String = stream_cipher(file_content_binary);
     println!("encrypted file: \n{}", encrypted_text);
 
     let mut req_index = 0;
